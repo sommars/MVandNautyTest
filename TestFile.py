@@ -1,6 +1,6 @@
 nautyPath = '/Applications/sage/local/bin/dreadnaut'
-#from phcpy.solver import number_of_symbols, mixed_volume
-#from phcpy.polytopes import support
+from phcpy.solver import number_of_symbols, mixed_volume
+from phcpy.polytopes import support
 
 #-------------------------------------------------------------------------------
 def MakeConstIntoVar(Polys):
@@ -124,7 +124,7 @@ def CreateNautyString(Polys):
     return NautyString(SystemAsLists, SystemNode, Variables, Monomials, Polynomials, PartList)
 
 #-------------------------------------------------------------------------------
-def GetUniqueString(CanonizedLists):
+def GetNautyOutput(CanonizedLists):
     """
     This function takes a polynomial in the desired format, and then it performs
     the nauty call and parses the output to create the unique string.
@@ -133,18 +133,42 @@ def GetUniqueString(CanonizedLists):
     p = Popen([nautyPath], stdout = PIPE, stdin = PIPE, stderr = STDOUT, universal_newlines = True)
     Output = p.communicate(input = CanonizedLists)[0]
     return Output
+
+#-------------------------------------------------------------------------------
+def GetUniqueString(Output):
     return Output[Output.find(':') - 4:] + PowerString
 
 #-------------------------------------------------------------------------------
-"""
 def canonize(pols):
     dim = number_of_symbols(pols)
     
     supp = [[list(mon) for mon in support(dim,pol)] for pol in pols]
-    print(supp)
-    return GetUniqueString(CreateNautyString(MakeConstIntoVar(supp)))
-"""
-    
+    nautyString = GetNautyOutput(CreateNautyString(MakeConstIntoVar(supp)))
+    groupSize = GetGroupSize(nautyString,supp)
+    uniqueString = GetUniqueString(nautyString)
+    return uniqueString,groupSize
+
+#-------------------------------------------------------------------------------
+def GetGroupSize(nautyString,supp):
+    # finds the system's symmetry group size (after dividing out by the 
+    # "same polynomial" symmetry)
+    from math import factorial
+    grpStart = nautyString.find('grpsize=') + 8 
+    grpEnd = nautyString.find(';',grpStart) 
+    groupSize = int(nautyString[grpStart:grpEnd])
+    polySymmetry = reduce(lambda a,b:a*b,map(factorial,SystemSupportPartition(supp)))
+    print groupSize,polySymmetry,'<---'
+    return groupSize/polySymmetry
+
+#-------------------------------------------------------------------------------
+def SystemSupportPartition(supp):
+    count = {}
+    polys = [tuple([tuple(m) for m in p]) for p in supp]
+    for poly in polys:
+        if poly in count:count[poly] += 1
+        else:count[poly]=1
+    return count.values()
+
 #-------------------------------------------------------------------------------
 def MixedVolume(pols):
     return mixed_volume(pols)
@@ -203,16 +227,17 @@ def GenerateFourDimMonsOfDegree(d):
     return Pts
 
 #-------------------------------------------------------------------------------
-def GenerateAllSystems(DegreeBound, Dimension):
-    if Dimension == 2:
-        return GenerateTwoDimMonsOfDegree(DegreeBound)
-    elif Dimension == 3:
-        return GenerateThreeDimMonOfDegree(DegreeBound)
-    elif Dimension == 4:
-        return GenerateFourDimMonsOfDegree(DegreeBound)
-    else:
-        print "ERROR! Jeff was lazy so this is not yet supported."
-        return
+def GenerateAllSystems(DegreeBound, Dimension, includeConst=False, includeMonoms=False):
+    from itertools import product, ifilter, chain, combinations
+    from scipy.special import binom
+    degBoundFn = lambda a:sum(a)<=DegreeBound
+    monoms = list(ifilter(degBoundFn,product(range(DegreeBound+1),repeat=Dimension)))
+    if includeConst:includer = 0
+    elif includeMonoms:includer = 1
+    else:includer = 2
+    print int(binom(DegreeBound,Dimension))+2
+    polys = chain.from_iterable(combinations(monoms,n) for n in xrange(includer,int(binom(DegreeBound,Dimension))+2))
+    return list(polys)
 
 #-------------------------------------------------------------------------------
 def convertSupportToPolys(supp):
@@ -226,6 +251,10 @@ def convertSupportToPolys(supp):
         polys.append(' + '.join(thisPoly)+ ';')
     return polys
 
+"""
+for i in GenerateAllSystems(2,2):print i
+#for i in convertSupportToPolys(GenerateAllSystems(2,2)):print i
+
 Supports = GenerateAllSystems(2,2)
 print(len(Supports))
 #for i in convertSupportToPolys(Supports):print i
@@ -234,4 +263,4 @@ print Supports[0]
 systs = map(convertSupportToPolys,Supports)
 print systs[10]
 #print canonize(systs[100])
-
+"""
