@@ -6,23 +6,37 @@ def binom(n,k):
             prod /= i
     return prod
 
-for i in xrange(2,10):print int(binom(2*i,i)),',',
-print
-
 from random import randint
 from TestAllPolys import GenerateAllMonomials,convertSupportToPoly
-def randomPolySupport(DegreeBound, Dimension):
+#-------------------------------------------------------------------------------
+def randomPolySupports(DegreeBound, Dimension, numPolys=1):
+    """
+    Generates random polynomials in Dimension variables and total
+    degree <= DegreeBound. Equivalent to finding a random element of
+    the power set of all monomials, so if there are M of them, we pick
+    a random int 0<=x<=M and use its binary representation to choose
+    from the list of monomials. Can get several random polys at a time.
+    """
     numberMonoms = int(binom(Dimension + DegreeBound, Dimension))
-    powerSetIndex = bin(randint(0,int(2**numberMonoms)))[2:]
-    powerSetIndex = powerSetIndex.rjust(numberMonoms,'0')
+    def getPowerSetIndex():
+        powerSetIndex = bin(randint(0,int(2**numberMonoms)))[2:]
+        return powerSetIndex.rjust(numberMonoms,'0')
+    PSindices = [getPowerSetIndex() for i in xrange(numPolys)]
     monoms = GenerateAllMonomials(DegreeBound, Dimension)
-    toReturn = []
-    ind = 0
+    toReturn = [[] for i in xrange(numPolys)]
+    index = 0
     for monom in monoms:
-        if powerSetIndex[ind]=='1':toReturn.append(monom)
-        ind+=1
+        for polyNum in xrange(numPolys):
+            if PSindices[polyNum][index]=='1':toReturn[polyNum].append(monom)
+        index+=1
+    # if we just wanted one, return it,
+    # else return all of them
+    if len(toReturn)==1:return toReturn[0] 
     return toReturn
 
-deg = 3
-nvars = 2
-print convertSupportToPoly(randomPolySupport(deg, nvars))
+if __name__=='__main__':
+    deg = 3
+    nvars = 2
+    print convertSupportToPoly(randomPolySupports(deg, nvars))
+    print map(convertSupportToPoly, randomPolySupports(deg, nvars, 3))
+
