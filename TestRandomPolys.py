@@ -51,17 +51,15 @@ def bigSampleTest(sampleSize = 100):
                 return toReturn
             toReturn += thisData
             numMonoms += 1
-    data = []
-    for n in xrange(3,6):
-        for d in xrange(3,11):
-            data+=loopUpInMonomCount(n,d)
     with open('polyData.out','w') as f:
-        for item in data[:-1]:
-            f.write(str(item)[1:-1])
-            f.write('\n')
-        f.write(str(data[-1])[1:-1])
-        
-bigSampleTest(sampleSize=30)
+        for n in xrange(3,6):
+            for d in xrange(3,11):
+                data=loopUpInMonomCount(n,d)
+                for item in data:
+                    f.write(str(item)[1:-1])
+                    f.write('\n')
+
+bigSampleTest(sampleSize=2)
 
 #import cProfile
 #cProfile.run('asdf()')
