@@ -7,8 +7,7 @@ def bezout(syst):
     degrees = map(lambda p:max(map(sum,p)),syst)
     return reduce(lambda a,b:a*b,degrees)
 
-if __name__=='__main__':
-#def asdf():
+def testWithHardcodedParameters():
     numVars = 4
     degreeBound = 16
     #weightVal = 0.151
@@ -26,10 +25,43 @@ if __name__=='__main__':
         data.append(newDatum)
     #print ', '.join(data)
     print "Average ratio of MV:Bezout:",sum(data)/len(data)
+    """
     fileEnding = 'dim='+str(numVars)+'_deg='+str(degreeBound)+'_random'
     with open('data_'+fileEnding,'w') as f:
         f.write('bezout,LPRC,MV,gpSize\n')
         f.write('\n'.join(data))
+    """
+
+def bigSampleTest(sampleSize = 100):
+    from randomPolynomials import randomSmallPolys
+    def loopUpInMonomCount(n,d):
+        numMonoms = 3
+        toReturn = []
+        while True:
+            thisData = []
+            percentages = []
+            for i in xrange(sampleSize):
+                syst = randomSmallPolys(d, n, numMonoms, numPolys=n)
+                polys = map(convertSupportToPoly,syst)
+                mv, bez = MV(polys),bezout(syst)
+                thisData.append((n,d,numMonoms,mv,bez))
+                percentages.append(mv*1.0/bez)
+            mvPercent = sum(percentages)/len(percentages)
+            if mvPercent>0.5:
+                return toReturn
+            toReturn += thisData
+            numMonoms += 1
+    data = []
+    for n in xrange(3,6):
+        for d in xrange(3,11):
+            data+=loopUpInMonomCount(n,d)
+    with open('polyData.out','w') as f:
+        for item in data[:-1]:
+            f.write(str(item)[1:-1])
+            f.write('\n')
+        f.write(str(data[-1])[1:-1])
+        
+bigSampleTest(sampleSize=30)
 
 #import cProfile
 #cProfile.run('asdf()')
