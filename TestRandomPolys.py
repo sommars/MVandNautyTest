@@ -9,7 +9,7 @@ def bezout(syst):
 
 if __name__=='__main__':
 #def asdf():
-    numVars = 5
+    numVars = 4
     degreeBound = 16
     #weightVal = 0.151
     weightVal = 21
@@ -27,11 +27,9 @@ if __name__=='__main__':
     #print ', '.join(data)
     print "Average ratio of MV:Bezout:",sum(data)/len(data)
     fileEnding = 'dim='+str(numVars)+'_deg='+str(degreeBound)+'_random'
-    """
     with open('data_'+fileEnding,'w') as f:
         f.write('bezout,LPRC,MV,gpSize\n')
         f.write('\n'.join(data))
-    """
 
 #import cProfile
 #cProfile.run('asdf()')
