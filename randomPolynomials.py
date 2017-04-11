@@ -47,29 +47,24 @@ def randomPolySupports(DegreeBound, Dimension, numPolys=1, weight=0.5):
     # if len(toReturn)==1:return toReturn[0] 
     return toReturn
 
-'''
 #-------------------------------------------------------------------------------
-def randomPolySupports(DegreeBound, Dimension, numPolys=1, weight=0.5):
+def randomSmallPolys(DegreeBound, Dimension, numMonoms, numPolys=1):
     """
-    Generates random polynomials in Dimension variables and total
-    degree <= DegreeBound. Equivalent to finding a random element of
-    the power set of all monomials, so if there are M of them, we pick
-    a random int 0<=x<=M and use its binary representation to choose
-    from the list of monomials. Can get several random polys at a time.
-    Weight is the probability that a monomial gets chosen.
+    Generates random polynomials (support) in Dimension variables and total
+    degree <= DegreeBound with numMonoms monomials.
     """
-    numberMonoms = int(binom(Dimension + DegreeBound, Dimension))
-    monoms = GenerateAllMonomials(DegreeBound, Dimension)
-    toReturn = [[] for i in xrange(numPolys)]
-    for monom in monoms:
-        for polyNum in xrange(numPolys):
-            if random()<weight:toReturn[polyNum].append(monom)
-    # if we just wanted one, return it,
-    # else return all of them
-    if len(toReturn)==1:return toReturn[0] 
-    return toReturn
-'''
-
+    totalNumberMonoms = int(binom(Dimension + DegreeBound, Dimension))
+    def randomMonom():
+        while True:
+            toReturn = tuple([randint(0,DegreeBound+1) for i in xrange(Dimension)])
+            if sum(toReturn)<=DegreeBound:return toReturn
+    polys = []
+    for i in xrange(numPolys):
+        thisPoly = {}
+        while len(thisPoly)<numMonoms:
+            thisPoly[randomMonom()] = 1
+        polys.append(thisPoly.keys())
+    return polys
 
 if __name__=='__main__':
     deg = 3
